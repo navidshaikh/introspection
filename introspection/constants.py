@@ -9,9 +9,9 @@ LOGFILE_PATH = "/var/tmp/introspection.log"
 
 TEST_SCRIPTS_NAME = [
     SHELL_SCRIPT,
-    PACKAGE_TESTS,
-    RPM_VERIFY_TESTS,
-    ELF_TESTS,
+#    PACKAGE_TESTS,
+#    RPM_VERIFY_TESTS,
+#     ELF_TESTS,
 ]
 
 if path.exists(path.join("usr/bin", SHELL_SCRIPT)):
