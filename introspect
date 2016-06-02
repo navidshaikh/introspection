@@ -1,0 +1,120 @@
+#!/usr/bin/env python
+
+import os
+import tempfile
+import selinux
+
+from optparse import OptionParser
+
+from introspection import probe_runner
+
+VERSION = '0.0.1'
+USAGE = 'usage: %prog image_name --offline'
+RESULT_DIR = ''
+
+
+def get_eg():
+    """
+    Return the example text
+    """
+    # TODO: add more examples
+    return USAGE
+
+
+def add_arguments(parser):
+    '''
+    Takes OptionParser object and adds arguments
+    '''
+    parser.add_option('-o',
+                      '--output-dir',
+                      dest='output_dir',
+                      help='Path to directory where probe data is saved')
+
+    parser.add_option('-t',
+                      '--tar',
+                      dest='tar_file',
+                      action='store_true',
+                      help='Export test run data in tarball.')
+
+    dockeruser_help = ('Run probe tests inside container as this user.')
+
+    parser.add_option('-d',
+                      '--dockeruser',
+                      dest='dockeruser',
+                      default='root',
+                      help=dockeruser_help)
+
+    parser.add_option('--offline',
+                      dest='offline',
+                      action='store_true',
+                      help='Consider processing local images as well.')
+    return parser
+
+
+def check_sanity_of_args(options, args, parser):
+    '''
+    Check sanity of command line args provided
+    '''
+    if len(args) != 1:
+        msg = "No argument is provided."
+        print get_eg()
+        parser.error(msg)
+
+    if options.output_dir:
+        # if output directory is given, it must be present
+        if not os.path.isdir(options.output_dir):
+            os.mkdir(options.output_dir)
+
+
+def check_selinux_status(parser):
+    """
+    Check and if necessary warn the user about incorrect selinux mode
+    """
+    if not selinux.is_selinux_enabled():
+        error_msg = """
+    SELinux is disabled.
+    Please enable it for probing to begin."""
+        parser.error(error_msg)
+        return
+    mode = selinux.security_getenforce()
+    if mode == 1:
+        error_msg = """
+    SELinux is set to Enforcing.
+    Please set it to Permissive for probing to begin."""
+        parser.error(error_msg)
+
+
+def main():
+    parser = OptionParser(usage=USAGE, version='%prog ' + VERSION)
+    parser = add_arguments(parser)
+    (options, args) = parser.parse_args()
+    check_sanity_of_args(options, args, parser)
+    # check_selinux_status(parser)
+
+    image = args[0]
+
+    # Create result directory here only to put execution result in there
+    if not options.output_dir:
+        options.output_dir = tempfile.mkdtemp()
+
+    # Either one specified by user or temp dir
+    global RESULT_DIR
+    RESULT_DIR = options.output_dir
+
+    kwargs = dict(
+        image=image,
+        user=options.dockeruser,
+        output_dir=RESULT_DIR,
+        offline=options.offline
+        )
+
+    tester = probe_runner.ProbeRunner(**kwargs)
+
+    tester.run()
+
+
+if __name__ == "__main__":
+    try:
+      main()
+    except Exception as error:
+      raise
