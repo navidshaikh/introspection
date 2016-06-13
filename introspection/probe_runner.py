@@ -179,7 +179,7 @@ class ProbeRunner(object):
         """
         Returns volumes mapping from host to container
         """
-        volumes = "%s:%s" % (self.cert_shared_dir_at_host(),
+        volumes = "%s:%s:Z" % (self.cert_shared_dir_at_host(),
                              self.test_scripts_dir_in_container())
         return volumes
 

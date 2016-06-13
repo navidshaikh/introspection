@@ -6,7 +6,7 @@ from subprocess import Popen, PIPE
 from struct import unpack
 
 # container specific
-CERT_DIR_PARENT = "/var/tmp/cert_container/"
+CERT_DIR_PARENT = "/var/tmp/container_introspection/"
 
 # FILE_TYPE constants help identify file types
 FTYPES = {
