@@ -1,16 +1,21 @@
 #!/usr/bin/env python
 
+import logging
 import os
-import tempfile
 import selinux
+import tempfile
 
 from optparse import OptionParser
 
 from introspection import probe_runner
+from introspection import utils
+
 
 VERSION = '0.0.1'
 USAGE = 'usage: %prog image_name --offline'
 RESULT_DIR = ''
+PROG = os.path.basename(__file__)
+log = logging.getLogger(PROG)
 
 
 def get_eg():
@@ -114,6 +119,7 @@ def main():
 
 
 if __name__ == "__main__":
+    utils.configure_logging()
     try:
       main()
     except Exception as error:

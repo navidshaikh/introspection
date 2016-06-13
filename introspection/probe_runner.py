@@ -1,3 +1,4 @@
+import logging
 import os
 import tempfile
 
@@ -16,6 +17,9 @@ from selinux_tests import SELinuxTests
 from selinux_denials_tests import SELinuxDenials
 
 
+log = logging.getLogger(os.path.basename(__file__))
+
+
 class GetImage(object):
 
     """
@@ -28,6 +32,7 @@ class GetImage(object):
 
     def image_source_type(self, image):
         return constants.LOCAL_IMAGE
+
 
 class ProbeRunner(object):
 
@@ -80,7 +85,6 @@ class ProbeRunner(object):
         """
         random_name = "".join(choice(ascii_lowercase) for _ in range(6))
         return "cert_%s" % random_name
-
 
     def is_image_tests(self):
         """
@@ -180,7 +184,7 @@ class ProbeRunner(object):
         Returns volumes mapping from host to container
         """
         volumes = "%s:%s:Z" % (self.cert_shared_dir_at_host(),
-                             self.test_scripts_dir_in_container())
+                               self.test_scripts_dir_in_container())
         return volumes
 
     def run_image_tests(self):
@@ -188,15 +192,19 @@ class ProbeRunner(object):
         Run image tests
         """
         volumes = self._get_volumes_mapping()
+        log.debug("Volumes for test run %s", volumes)
         entrypoint = self._test_kickstart_path_in_container()
         params = self._get_params_for_image_tests(volumes, entrypoint)
+        log.debug("Params for creating container %s", str(params))
 
+        log.info("Creating container for running tests inside image.")
         try:
             self.containerutils.create_container(params)
         except:
             raise
         else:
             msg = "Successfully ran image tests."
+            log.debug(msg)
             return self.pkg_report_path()
 
     # -------------------Test-run-utilities----------------------
@@ -205,7 +213,9 @@ class ProbeRunner(object):
         """
         Run pre test run setup
         """
+        log.debug("Copying test script in shared directory at host.")
         self.copy_scripts_in_test_dir()
+        log.debug("Changing permission of shared directory at host to 0777.")
         self.change_perm_for_test_dir(self.cert_shared_dir_at_host(), 0777)
 
     def _run(self):
@@ -215,7 +225,7 @@ class ProbeRunner(object):
         self.run_image_tests()
 
         # image inspection test
-        msg = "Inspection image under test.."
+        msg = "Inspecting image under test.."
         print msg
         inspect_image_report_path = os.path.join(
             self.cert_shared_dir_at_host(),
@@ -255,12 +265,13 @@ class ProbeRunner(object):
                 if self.image:
                     self.clean.clean_image(self.image, all_tags=True)
         except Exception as e:
-          raise
+            raise
 
     def create_testdata_tarball(self):
         """
         Create tarball of test data
         """
+        log.debug("Creating tarball of test data.")
         source_dir = self.cert_shared_dir_at_host()
         tempdir = tempfile.mkdtemp(dir=source_dir)
 
@@ -301,6 +312,7 @@ class ProbeRunner(object):
         """
         Remove test scripts from result directory if any
         """
+        log.debug("Removing the test scripts from shared volume.")
         for item in os.listdir(self.cert_shared_dir_at_host()):
             if item in self.test_scripts():
                 os.unlink(os.path.join(self.cert_shared_dir_at_host(), item))
@@ -321,7 +333,9 @@ class ProbeRunner(object):
         """
         Run all tests
         """
+        log.info("Start of introspecting the container.")
         self.setup()
         self.pre_test_run_setup()
         self._run()
         self._post_run()
+        log.info("Completed container introspection.")

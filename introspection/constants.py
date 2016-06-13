@@ -10,7 +10,7 @@ LOGFILE_PATH = "/var/tmp/introspection.log"
 TEST_SCRIPTS_NAME = [
     SHELL_SCRIPT,
     PACKAGE_TESTS,
-    # RPM_VERIFY_TESTS,
+    RPM_VERIFY_TESTS,
 #     ELF_TESTS,
 ]
 
@@ -24,7 +24,7 @@ else:
 TEST_SCRIPTS_PATH = [
     SHELL_SCRIPT_PATH,
     path.join(path.dirname(__file__), PACKAGE_TESTS),
-    # path.join(path.dirname(__file__), RPM_VERIFY_TESTS),
+    path.join(path.dirname(__file__), RPM_VERIFY_TESTS),
 #     path.join(path.dirname(__file__), ELF_TESTS),
 ]
 
