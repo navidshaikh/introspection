@@ -1,3 +1,4 @@
+import logging
 import os
 import tempfile
 
@@ -16,6 +17,9 @@ from selinux_tests import SELinuxTests
 from selinux_denials_tests import SELinuxDenials
 
 
+log = logging.getLogger(os.path.basename(__file__))
+
+
 class GetImage(object):
 
     """
@@ -28,6 +32,7 @@ class GetImage(object):
 
     def image_source_type(self, image):
         return constants.LOCAL_IMAGE
+
 
 class ProbeRunner(object):
 
@@ -80,7 +85,6 @@ class ProbeRunner(object):
         """
         random_name = "".join(choice(ascii_lowercase) for _ in range(6))
         return "cert_%s" % random_name
-
 
     def is_image_tests(self):
         """
@@ -180,7 +184,7 @@ class ProbeRunner(object):
         Returns volumes mapping from host to container
         """
         volumes = "%s:%s:Z" % (self.cert_shared_dir_at_host(),
-                             self.test_scripts_dir_in_container())
+                               self.test_scripts_dir_in_container())
         return volumes
 
     def run_image_tests(self):
@@ -255,7 +259,7 @@ class ProbeRunner(object):
                 if self.image:
                     self.clean.clean_image(self.image, all_tags=True)
         except Exception as e:
-          raise
+            raise
 
     def create_testdata_tarball(self):
         """

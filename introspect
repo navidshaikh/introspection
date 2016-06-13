@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
+import logging
 import os
-import tempfile
 import selinux
+import tempfile
 
 from optparse import OptionParser
 
@@ -11,6 +12,27 @@ from introspection import probe_runner
 VERSION = '0.0.1'
 USAGE = 'usage: %prog image_name --offline'
 RESULT_DIR = ''
+PROG = os.path.basename(__file__)
+log = logging.getLogger(PROG)
+
+
+
+def configure_logging():
+    """
+    Configure logging
+    """
+    fmt = "[%(asctime)s] %(name)s - %(filename)s - %(levelname)s - %(message)s"
+    logging.basicConfig(filename=LOGFILE_PATH,
+                        level=logging.DEBUG,
+                        format=fmt)
+
+
+
+
+
+
+
+
 
 
 def get_eg():
