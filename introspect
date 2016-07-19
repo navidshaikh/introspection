@@ -7,9 +7,8 @@ import tempfile
 
 from optparse import OptionParser
 
-from introspection import probe_runner
-from introspection import utils
-
+from Introspection import test_runner
+from Introspection import utils
 
 VERSION = '0.0.1'
 USAGE = 'usage: %prog image_name --offline'
@@ -113,7 +112,7 @@ def main():
         offline=options.offline
         )
 
-    tester = probe_runner.ProbeRunner(**kwargs)
+    tester = test_runner.TestRunner(**kwargs)
 
     tester.run()
 

@@ -5,7 +5,7 @@ PROBE_CONFIG = "introspection_execution_errors.json"
 
 try:
     PROBE_ERRORS = json.load(
-        open(os.path.join("/etc/introspection/", PROBE_CONFIG)))
+        open(os.path.join("/etc/Introspection/", PROBE_CONFIG)))
 except IOError:
     filename = os.path.join(os.path.dirname(
                             os.path.dirname(os.path.abspath(__file__))),

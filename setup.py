@@ -15,11 +15,11 @@ contents and ABI properties.""",
     url="http://www.redhat.com",
     license="http://www.gnu.org/licenses/old-licenses/gpl-2.0.html",
     scripts=[
-        "introspection",
-        "introspectionscript.sh"],
-    packages=["introspection"],
+        "introspect",
+        "introspection_script.sh"],
+    packages=["Introspection"],
     data_files=[
-        ("/etc/introspection",
-         ["etc/introspection/introspection_execution_errors.json"]),
+        ("/etc/Introspection",
+         ["etc/Introspection/introspection_execution_errors.json"]),
     ],
 )

@@ -34,7 +34,7 @@ class GetImage(object):
         return constants.LOCAL_IMAGE
 
 
-class ProbeRunner(object):
+class TestRunner(object):
 
     """
     Probe runner utility
