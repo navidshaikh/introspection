@@ -67,11 +67,11 @@ class DockerUtils(object):
         try:
             (out, error) = self.command(cmd)
         except HTTPError:
-            raise introexceptions.CTSImagePullError(image)
+            raise introexceptions.ImagePullError(image)
         else:
             if not self.is_image_present(image) and error != "":
                 err = "Image:%s\n%s" % (image, error)
-                raise introexceptions.CTSImagePullError(err)
+                raise introexceptions.ImagePullError(err)
             else:
                 return image
 
@@ -141,7 +141,7 @@ class DockerUtils(object):
         if error:
             msg = "Command used: %s\n" % params
             msg += "Error:%s" % error
-            raise introexceptions.CTSCannotCreateContainer(msg)
+            raise introexceptions.CannotCreateContainer(msg)
 
     def is_container_running(self, container):
         """
@@ -232,7 +232,7 @@ class DockerUtils(object):
         """
         Raise invalid image name error
         """
-        raise introexceptions.CTSInvalidImageNameError(image)
+        raise introexceptions.InvalidImageNameError(image)
 
     def tag_of_image(self, t_image):
         """
@@ -306,7 +306,7 @@ class DockerUtils(object):
             log.info("Image is loaded from tarpath.")
         except Exception as e:
             msg = "tar/gz file: %s \n %s" % (tar_path, e)
-            raise introexceptions.CTSImageLoadErrorFromTarfile(msg)
+            raise introexceptions.ImageLoadErrorFromTarfile(msg)
         else:
             return self.find_image_name_from_tar(tar_path, tmpdir)
 
@@ -320,7 +320,7 @@ class DockerUtils(object):
         except tarfile.TarError:
             msg = "Can not open the tar/gz file: %s" % tarpath
             log.error(msg)
-            raise introexceptions.CTSImageLoadErrorFromTarfile(msg)
+            raise introexceptions.ImageLoadErrorFromTarfile(msg)
 
     def find_image_name_from_tar(self, tar_path, tmpdir=None):
         """
@@ -346,7 +346,7 @@ class DockerUtils(object):
             return metadata
         except:
             msg = "tar/gz file: %s" % tar_path
-            raise introexceptions.CTSInvalidTarFileImage(msg)
+            raise introexceptions.InvalidTarFileImage(msg)
         finally:
             # remove the temp dir created as tempfile does not remove it
             rmtree(temp_dir, ignore_errors=True)

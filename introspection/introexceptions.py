@@ -1,7 +1,7 @@
 import json
 import os
 
-PROBE_CONFIG = "probe_execution_errors.json"
+PROBE_CONFIG = "introspection_execution_errors.json"
 
 try:
     PROBE_ERRORS = json.load(
@@ -14,7 +14,7 @@ except IOError:
     PROBE_ERRORS = json.load(open(filename))
 
 
-class CustomCTSException(Exception):
+class IntroExceptions(Exception):
     """
     Abstracted exception
     """
@@ -58,63 +58,45 @@ class CustomCTSException(Exception):
         return self.get_error_message()
 
 
-class CTSDockerServiceNotRunning(CustomCTSException):
+class DockerServiceNotRunning(IntroExceptions):
     pass
 
 
-class CTSImagePullError(CustomCTSException):
+class ImagePullError(IntroExceptions):
     pass
 
 
-class CTSTarfileDownloadError(CustomCTSException):
+class TarfileDownloadError(IntroExceptions):
     pass
 
 
-class CTSImageLoadErrorFromTarfile(CustomCTSException):
+class ImageLoadErrorFromTarfile(IntroExceptions):
     pass
 
 
-class CTSFTPLoginError(CustomCTSException):
+class InvalidImageNameError(IntroExceptions):
     pass
 
 
-class CTSInvalidImageNameError(CustomCTSException):
+class ConfigFileError(IntroExceptions):
     pass
 
 
-class CTSConfigFileError(CustomCTSException):
+class CannotCreateContainer(IntroExceptions):
     pass
 
 
-class CTSCannotCreateContainer(CustomCTSException):
+class ImageNotPresent(IntroExceptions):
     pass
 
 
-class CTSImageNotPresent(CustomCTSException):
+class TarImageIOError(IntroExceptions):
     pass
 
 
-class CTSTarImageIOError(CustomCTSException):
+class InvalidTarFileImage(IntroExceptions):
     pass
 
 
-class CTSUnSupportedFTPServer(CustomCTSException):
-    pass
-
-
-class CTSInvalidTarFileImage(CustomCTSException):
-    pass
-
-
-class CTSIncompleteParameters(CustomCTSException):
-    pass
-
-
-class CTSOutputDirectoryDoesNotExist(CustomCTSException):
-    pass
-
-class CTSDecryptionError(CustomCTSException):
-    pass
-
-class CTSPulpRepoNotFound(CustomCTSException):
+class OutputDirectoryDoesNotExist(IntroExceptions):
     pass
