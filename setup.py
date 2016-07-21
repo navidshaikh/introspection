@@ -5,7 +5,7 @@ from distutils.core import setup
 
 setup(
     name="introspection",
-    version="0.1",
+    version="0.2",
     description="""
 Tooling to introspect container images detailing the
 contents and ABI properties.""",
