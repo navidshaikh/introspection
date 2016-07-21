@@ -75,5 +75,5 @@
     "error_disposition": "internal",
     "error_type": "config_error",
     "error_user_message": "Incomplete/invalid config file."
-  },
+  }
 }
