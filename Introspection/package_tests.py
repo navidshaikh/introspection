@@ -6,27 +6,7 @@ from subprocess import Popen, PIPE
 from struct import unpack
 
 # container specific
-CERT_DIR_PARENT = "/var/tmp/container_introspection/"
-
-# FILE_TYPE constants help identify file types
-FTYPES = {
-    "FILE_REL": 1,
-    "FILE_EXEC": 2,
-    "FILE_DSO": 3,
-    "FILE_CORE": 4,
-    "FILE_DIR": 5,
-    "FILE_LINK": 6,
-    "FILE_GZ": 7,
-    "FILE_BZ": 8,
-    "FILE_RPM": 9,
-    "FILE": 0,
-    }
-
-# Package Validation Constants
-PKG_VALIDATION = {"BUILD_HOST": ".redhat.com",
-                  "VENDOR": "Red Hat, Inc."}
-
-INV_FTYPES = dict([v, k] for k, v in FTYPES.iteritems())
+SHARED_DIR_PARENT = "/var/tmp/container_introspection/"
 
 
 class PackageTests(object):
@@ -126,17 +106,6 @@ class PackageTests(object):
         for hdr in ts.dbMatch("name", rpm_name):
             return hdr[rpm.RPMTAG_FILENAMES]
 
-    def match_bin_with_pkg(self, binary):
-        """
-        Match given binary to its RPM package
-        """
-        cmd = ["/bin/rpm", "-qf", binary]
-        pkgs = Popen(cmd, stdout=PIPE).stdout.read().strip()
-        if " " in pkgs:
-            return None
-        else:
-            return pkgs.split("\n")
-
     def get_signature_of_give_package(self, pkg):
         """
         Get GPG key of given installed pkg
@@ -161,174 +130,55 @@ class PackageTests(object):
         out = Popen(cmd, stdout=PIPE).stdout.read()
         return list(set(out.split("\n")[:-1]))
 
-    def filetype(self, path):
+    def get_all_binaries_libs(self):
         """
-        filetype: reads the first few bytes from - path - and tries to
-        identify the file type. At present it can identify an ELF executable,
-        shared object and symbolic link files.
+        Run the list of all libraries and binaries in standard
+        path of a linux system along with paths added LD_LIBRARY_PATH
         """
-
-        if not path:
-            return 0
-
-        f = os.lstat(path)
-        if stat.S_ISDIR(f.st_mode):
-            return FTYPES["FILE_DIR"]
-        elif stat.S_ISLNK(f.st_mode):
-            return FTYPES["FILE_LINK"]
-        elif not stat.S_ISREG(f.st_mode):
-            return 0
-
-        try:
-            f = open(path, "rb")
-        except IOError:
-            return 0
-
-        s = f.read(16)
-        if s[:4] == "\x7FELF":
-            s = f.read(2)
-            s = unpack("h", s)[0]
-        elif s[:4] == "BZh9":
-            s = FTYPES["FILE_BZ"]
-        elif s[:4] == "\x1F\x8B\x08\x00":
-            s = FTYPES["FILE_GZ"]
-        elif s[:4] == "\xED\xAB\xEE\xDB":
-            s = FTYPES["FILE_RPM"]
-        else:
-            s = FTYPES["FILE"]
-
-        f.close()
-        return s
-
-    def get_elf_files(self, files):
-        """
-        Takes file list as input and returns ELF files among them as list.
-        """
-        elf_types = [FTYPES["FILE_REL"], FTYPES["FILE_EXEC"],
-                     FTYPES["FILE_DSO"], FTYPES["FILE_CORE"]]
-        return [fl for fl in files
-                if os.path.exists(fl) and self.filetype(fl) in elf_types]
-
-    def check_and_add_missing_packages(self, data):
-        """
-        This method compares the packages calculated using installed file with
-        the total installed packages. And adds the missing packages to data.
-        This will cover RPMs which do not install any library/executable,
-        for eg: epel-release RPM
-        """
-        installed = self.get_installed_packages()
-        # compare the calculated packages with installed packages
-        cal_pkgs = data.keys()
-        if "No-Package" in cal_pkgs:
-            cal_pkgs.remove("No-Package")
-        if len(installed) > len(cal_pkgs):
-            # `installed` RPMs set is super-set
-            missing_pkgs = list(set(installed) - set(cal_pkgs))
-        else:
-            missing_pkgs = []
-
-        for pkg in missing_pkgs:
-            meta = self.get_meta_of_pkg(pkg)
-            info = {"FILES": self.get_installed_files(pkg),
-                    "SIGNATURE": meta[0],
-                    "VENDOR": meta[1],
-                    "PACKAGER": meta[2],
-                    "BUILD_HOST": meta[3]
-                    }
-            data[pkg] = info
-        return data
-
-    def get_all_data(self):
-        """
-        Run tests and gather all test data JSON format
-        """
-        data = {}
+        bins = []
         for directory in self.bin_dirs:
-            binaries = self.get_binaries_inside_directory(directory)
-            for binary in binaries:
-                pkgs = self.match_bin_with_pkg(binary)
-                if not pkgs:
-                    if "No-Package" in data:
-                        data["No-Package"].append(binary)
-                    else:
-                        data["No-Package"] = [binary]
-                else:
-                    for pkg in pkgs:
-                        if pkg in data:
-                            data[pkg]["FILES"].append(binary)
-                        else:
-                            meta = self.get_meta_of_pkg(pkg)
-                            info = {"FILES": [binary],
-                                    "SIGNATURE": meta[0],
-                                    "VENDOR": meta[1],
-                                    "PACKAGER": meta[2],
-                                    "BUILD_HOST": meta[3]
-                                    }
-                            data[pkg] = info
+            bins += self.get_binaries_inside_directory(directory)
+        return bins
 
-        data = self.check_and_add_missing_packages(data)
-        return data
+    def find_adhoc_bins_libs(self, installed_packages=[]):
+        """
+        Diffs the libraries and binaries present in standard path
+        along with paths in the LD_LIBRARY_PATH to the installed files
+        via RPMs and returns the files which are not installed in system
+        via RPM packages
+        """
+        bins = self.get_all_binaries_libs()
+        if not installed_packages:
+            installed_packages = self.get_installed_packages()
+        for package in installed_packages:
+            # removes the files from all `bins` variable which are
+            # installed by RPM
+            print len(bins)
+            bins = list(set(bins) - set(self.get_installed_files(package)))
+            print len(bins)
 
-    def get_bins_without_pkgs(self, data):
-        """
-        Filter the bins present in image
-        """
-        if "No-Package" in data:
-            if len(data["No-Package"]) > 0:
-                bins = data["No-Package"]
-                # changing type(data["No-Package"]) list-->dict
-                datum = dict(
-                    (each, INV_FTYPES[self.filetype(each)]) for each in bins)
-                # Do not filter symbolic links, rather follow the real path
-                datum = dict([os.path.realpath(k), v]
-                             for k, v in datum.iteritems()
-                             if os.path.islink(k))
-                data["No-Package"] = datum
-        else:
-            # Value of data["No-Package"] should be a dict
-            data["No-Package"] = {}
-        return data
-
-    def add_requires_of_installed_pkgs(self, data):
-        """
-        Add requires of installed pkgs in test data
-        """
-        for pkg in data.keys():
-            if pkg != "No-Package":
-                data[pkg].update(
-                    {"REQUIRES": self.requires_of_installed_pkg(pkg)})
-        return data
-
-    def filter_non_rh_pkgs(self, data):
-        """
-        Filter Red Hat and Non Red Hat Packages
-        """
-        rht, non_rht = {}, {}
-        for key, value in data.iteritems():
-            if key != 'No-Package':
-                if data[key]['BUILD_HOST'].endswith(PKG_VALIDATION['BUILD_HOST']):
-                    rht.update({key:value})
-                elif data[key]['VENDOR'] == PKG_VALIDATION['VENDOR']:
-                    rht.update({key:value})
-                else:
-                    non_rht.update({key:value})
-
-        return {'RedHat': rht, 'Non-RedHat': non_rht, 'No-Package': data['No-Package']}
+        return bins
 
     def run(self):
         """
-        Run all of the tests
+        Run tests and gather all test data JSON format
         """
-        data = self.get_all_data()
-        # Get requires of all installed packages
+        installed_packages = self.get_installed_packages()
+        installed_packages_data = {}
+        for package in installed_packages:
+            metadata = self.get_meta_of_pkg(package)
+            info = {"SIGNATURE": metadata[0],
+                    "VENDOR": metadata[1],
+                    "PACKAGER": metadata[2],
+                    "BUILD_HOST": metadata[3],
+                    "REQUIRES": self.requires_of_installed_pkg(package)
+                    }
+            installed_packages_data[package] = info
 
-        data = self.add_requires_of_installed_pkgs(data)
-
-        data = self.get_bins_without_pkgs(data)
-
-        pkg_data = self.filter_non_rh_pkgs(data)
-
-        return pkg_data
+        return {"Installed_Packages": installed_packages_data,
+                "Adhoc_bins_libs": self.find_adhoc_bins_libs(
+                    installed_packages)
+                }
 
 
 if __name__ == "__main__":
@@ -336,15 +186,15 @@ if __name__ == "__main__":
     data = pkg_tests.run()
 
     bins_data_file_path = os.path.join(
-        CERT_DIR_PARENT,
+        SHARED_DIR_PARENT,
         "AdhocFiles.json")
 
     pkg_data_file_path = os.path.join(
-        CERT_DIR_PARENT,
+        SHARED_DIR_PARENT,
         "%s.json" % pkg_tests.__class__.__name__)
 
     with open(bins_data_file_path, "wb") as fin:
-        json.dump(data["No-Package"], fin)
-    data.pop('No-Package', None)
+        json.dump(data["Adhoc_bins_libs"], fin)
+    data.pop("Adhoc_bins_libs", None)
     with open(pkg_data_file_path, "wb") as fin:
         json.dump(data, fin)

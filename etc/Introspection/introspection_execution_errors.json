@@ -1,114 +1,79 @@
 {
-  "CTSDockerServiceNotRunning": {
+  "DockerServiceNotRunning": {
     "error_code": 201,
     "error_summary": "Docker service is not running on test run host.",
     "error_disposition": "internal",
     "error_type": "config_error",
     "error_user_message": "Please start the docker service to run tests."
   },
-  "CTSImagePullError": {
+  "ImagePullError": {
     "error_code": 202,
     "error_summary": "Can not pull image from registry.",
     "error_disposition": "internal",
     "error_type": "download_error",
     "error_user_message": "Please check if URL endpoints for docker-registry-image is correct."
   },
-  "CTSTarfileDownloadError": {
+  "TarfileDownloadError": {
     "error_code": 203,
     "error_summary": "Can not download the tar/gz file image.",
     "error_disposition": "internal",
     "error_type": "download_error",
     "error_user_message": "Can not download the tar/gz file image, recheck path of file on FTP server."
   },
-  "CTSImageLoadErrorFromTarfile": {
+  "ImageLoadErrorFromTarfile": {
     "error_code": 204,
     "error_summary": "Can not load image from tarfile.",
     "error_disposition": "tarfile_image_error",
     "error_type": "external",
     "error_user_message": "Can not load image from tar/gz file. Tar/gz file may be invalid/corrupt. Please check if image is archived properly."
   },
-  "CTSFTPLoginError": {
-    "error_code": 205,
-    "error_summary": "Can not login to FTP server. Please check credentials.",
-    "error_disposition": "authentication_error",
-    "error_type": "internal",
-    "error_user_message": "Please check the credentials to access resource on FTP server."
-  },
-  "CTSInvalidImageNameError": {
+  "InvalidImageNameError": {
     "error_code": 206,
     "error_summary": "Invalid docker-registry-image name.",
     "error_disposition": "internal",
     "error_type": "invalid_input",
     "error_user_message": "Please check the docker-registry-image name."
   },
-  "CTSCannotCreateContainer": {
+  "CannotCreateContainer": {
     "error_code": 207,
     "error_summary": "Can not create container.",
     "error_disposition": "internal",
     "error_type": "config_error",
     "error_user_message": "Can not create container from image under test. Check permissions."
   },
-  "CTSImageNotPresent": {
+  "ImageNotPresent": {
     "error_code": 208,
     "error_summary": "Image under test is not present. Image: ",
     "error_disposition": "internal",
     "error_type": "io_error",
     "error_user_message": "Image under test is not present."
   },
-  "CTSTarImageIOError": {
+  "TarImageIOError": {
     "error_code": 209,
     "error_summary": "Can not access tar/gz file image. File: ",
     "error_disposition": "internal",
     "error_type": "io_error",
     "error_user_message": "Can not access tar/gz file image. Check path and permissions of file."
   },
-  "CTSUnSupportedFTPServer": {
-    "error_code": 210,
-    "error_summary": "FTP server is unsupported.",
-    "error_disposition": "internal",
-    "error_type": "config_error",
-    "error_user_message": "FTP server is unsupported."
-  },
-  "CTSInvalidTarFileImage": {
+  "InvalidTarFileImage": {
     "error_code": 211,
     "error_summary": "Can not find repository name in tar/gz file.",
     "error_disposition": "external",
     "error_type": "tarfile_image_error",
     "error_user_message": "Can not find repository name in tar/gz file. Kindly check if image has a name before archiving it. Image should always have a name. Resubmit the image by giving it a proper name."
   },
-  "CTSOutputDirectoryDoesNotExist": {
+  "OutputDirectoryDoesNotExist": {
     "error_code": 212,
     "error_summary": "Output directory specified in command line does not exist.",
     "error_disposition": "internal",
     "error_type": "fatal_check_stdout",
     "error_user_message": "Output directory specified in command line does not exist."
   },
-  "CTSIncompleteParameters": {
-    "error_code": 213,
-    "error_summary": "Please provide username and password to download image from FTP server.",
-    "error_disposition": "internal",
-    "error_type": "config_error",
-    "error_user_message": "Incomplete parameters were given to test suite."
-  },
-  "CTSConfigFileError": {
+  "ConfigFileError": {
     "error_code": 214,
     "error_summary": "Incomplete/invalid config file.",
     "error_disposition": "internal",
     "error_type": "config_error",
     "error_user_message": "Incomplete/invalid config file."
   },
-  "CTSDecryptionError": {
-      "error_code": 215,
-      "error_summary": "Error in decryption of inbound image. ",
-      "error_disposition": "internal",
-      "error_type": "config_error",
-      "error_user_message": "Error in decryption of inbound image. "
-  },
-  "CTSPulpRepoNotFound": {
-      "error_code": 216,
-      "error_summary": "pulp.repo is not found in /etc/yum.repos.d directory.  ",
-      "error_disposition": "internal",
-      "error_type": "config_error",
-      "error_usage_message": "pulp.repo is not found in /etc/yum.repos.d directory.  "
-  }
 }
