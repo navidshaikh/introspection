@@ -61,7 +61,7 @@ class TestRunner(object):
                                  self.test_dir)
         # This method processes the image repository and return image name with
         # tag
-        self.cert_container = self.cert_container_name()
+        self.introspection_container = self.introspection_container_name()
 
     def _process_kwargs(self, **kwargs):
         """
@@ -79,12 +79,12 @@ class TestRunner(object):
         if not is_docker_running():
             raise ctsexceptions.CTSDockerServiceNotRunning
 
-    def cert_container_name(self):
+    def introspection_container_name(self):
         """
         Returns a container name
         """
         random_name = "".join(choice(ascii_lowercase) for _ in range(6))
-        return "cert_%s" % random_name
+        return "introspection_%s" % random_name
 
     def is_image_tests(self):
         """
@@ -122,7 +122,7 @@ class TestRunner(object):
         """
         return tempfile.mkdtemp(dir=self.cert_temp_parent_dir())
 
-    def cert_shared_dir_at_host(self):
+    def introspection_shared_dir_at_host(self):
         """
         Shared directory path at host to be used as volume
         """
@@ -132,7 +132,7 @@ class TestRunner(object):
         """
         Copy tests scripts in cert dir at host
         """
-        [copy(script, self.cert_shared_dir_at_host())
+        [copy(script, self.introspection_shared_dir_at_host())
          for script in self.test_scripts_source_path()]
 
     def change_perm_for_test_dir(self, test_dir, perm):
@@ -145,7 +145,7 @@ class TestRunner(object):
         """
         Package report path generated in live container test mode
         """
-        return os.path.join(self.cert_shared_dir_at_host(),
+        return os.path.join(self.introspection_shared_dir_at_host(),
                             constants.PACKAGE_REPORT)
 
     def _add_user_in_params(self, user, params):
@@ -166,7 +166,7 @@ class TestRunner(object):
         # method self._add_user_in_params() asssumes params starts
         # "run", hence params should start with "run"
         params = ["run", "-v", volumes, "--entrypoint", entrypoint,
-                  "--name", self.cert_container, self.image]
+                  "--name", self.introspection_container, self.image]
         # if container needs to be run as user root
         if self.dockeruser:
             self._add_user_in_params(self.dockeruser, params)
@@ -183,7 +183,7 @@ class TestRunner(object):
         """
         Returns volumes mapping from host to container
         """
-        volumes = "%s:%s:Z" % (self.cert_shared_dir_at_host(),
+        volumes = "%s:%s:Z" % (self.introspection_shared_dir_at_host(),
                                self.test_scripts_dir_in_container())
         return volumes
 
@@ -216,7 +216,7 @@ class TestRunner(object):
         log.debug("Copying test script in shared directory at host.")
         self.copy_scripts_in_test_dir()
         log.debug("Changing permission of shared directory at host to 0777.")
-        self.change_perm_for_test_dir(self.cert_shared_dir_at_host(), 0777)
+        self.change_perm_for_test_dir(self.introspection_shared_dir_at_host(), 0777)
 
     def _run(self):
         """
@@ -228,7 +228,7 @@ class TestRunner(object):
         msg = "Inspecting image under test.."
         print msg
         inspect_image_report_path = os.path.join(
-            self.cert_shared_dir_at_host(),
+            self.introspection_shared_dir_at_host(),
             "%s.json" % self.image_inspection_test.__class__.__name__
         )
         self.image_inspection_test.run(
@@ -238,7 +238,7 @@ class TestRunner(object):
 
         # metadata tests
         metadata_report_path = os.path.join(
-            self.cert_shared_dir_at_host(),
+            self.introspection_shared_dir_at_host(),
             "%s.json" % self.metadata.__class__.__name__
         )
         msg = "Collecting metadata of image under test.."
@@ -257,8 +257,8 @@ class TestRunner(object):
             if during_setup:
                 self.clean.remove_test_dir(self.test_dir)
                 return
-            if self.cert_container:
-                self.clean.clean_container(self.cert_container)
+            if self.introspection_container:
+                self.clean.clean_container(self.introspection_container)
             if post_run:
                 if self.test_dir:
                     self.clean.remove_test_dir(self.test_dir)
@@ -272,7 +272,7 @@ class TestRunner(object):
         Create tarball of test data
         """
         log.debug("Creating tarball of test data.")
-        source_dir = self.cert_shared_dir_at_host()
+        source_dir = self.introspection_shared_dir_at_host()
         tempdir = tempfile.mkdtemp(dir=source_dir)
 
         files = [os.path.join(source_dir, item)
@@ -313,16 +313,16 @@ class TestRunner(object):
         Remove test scripts from result directory if any
         """
         log.debug("Removing the test scripts from shared volume.")
-        for item in os.listdir(self.cert_shared_dir_at_host()):
+        for item in os.listdir(self.introspection_shared_dir_at_host()):
             if item in self.test_scripts():
-                os.unlink(os.path.join(self.cert_shared_dir_at_host(), item))
+                os.unlink(os.path.join(self.introspection_shared_dir_at_host(), item))
 
     def _post_run(self):
         """
         Operations to be performed post test run
         """
         self.remove_test_scripts_from_result()
-        result = self.cert_shared_dir_at_host()
+        result = self.introspection_shared_dir_at_host()
         print result
         # if testrun data (dir/tarfile) needs to be exported in particular dir
         if self.output_dir:
