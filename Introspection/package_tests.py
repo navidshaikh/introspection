@@ -113,6 +113,17 @@ class PackageTests(object):
         cmd = ["/bin/rpm", "-q", "--qf", "%{SIGPGP:pgpsig}", pkg]
         return Popen(cmd, stdout=PIPE).stdout.read().strip()
 
+    def match_bin_with_pkg(self, binary):
+        """
+        Match given binary to its RPM package
+        """
+        cmd = ["/bin/rpm", "-qf", binary]
+        pkgs = Popen(cmd, stdout=PIPE).stdout.read().strip()
+        if " " in pkgs:
+            return None
+        else:
+            return pkgs.split("\n")
+
     def get_meta_of_pkg(self, pkg):
         """
         Get metadata of given installed package.
@@ -155,9 +166,8 @@ class PackageTests(object):
             # installed by RPM
             print len(bins)
             bins = list(set(bins) - set(self.get_installed_files(package)))
-            print len(bins)
 
-        return bins
+        return [b for b in bins if not self.match_bin_with_pkg(b)]
 
     def run(self):
         """
@@ -194,7 +204,11 @@ if __name__ == "__main__":
         "%s.json" % pkg_tests.__class__.__name__)
 
     with open(bins_data_file_path, "wb") as fin:
-        json.dump(data["Adhoc_bins_libs"], fin)
-    data.pop("Adhoc_bins_libs", None)
+        json.dump(
+                {
+                    "Adhoc_files": data.pop("Adhoc_bins_libs", [])
+                },
+                fin)
+
     with open(pkg_data_file_path, "wb") as fin:
         json.dump(data, fin)
