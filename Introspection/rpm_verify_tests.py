@@ -73,9 +73,12 @@ class RPMVerifyTest(object):
             if line.startswith("error:"):
                 continue
             match = re.search(r'^([0-9A-Za-z.]+)\s+([c]{0,1})\s+(\W.*)$', line)
-            if match is None:
-              return "error"
 
+            # filter the lines with warnings or errors
+            if not match:
+                continue
+
+            # filter the config files
             if match.groups()[1] == 'c':
                 continue
 
@@ -83,7 +86,6 @@ class RPMVerifyTest(object):
             rpm = self.source_rpm_of_file(filepath)
             rpm_meta = self.get_meta_of_rpm(rpm)
             # do not include the config files in the result
-
 
             result.append({
               "issue": match.groups()[0],
